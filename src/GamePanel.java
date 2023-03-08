@@ -6,9 +6,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
-import java.util.Timer;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class GamePanel extends JPanel implements ActionListener {
 	
@@ -39,23 +39,69 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 	
 	public void startGame() {
-		
+		newApple();
+		running = true;
+		timer = new Timer(DELAY, this);
+		timer.start();
 	}
 	
-	public void PaintComponent(Graphics g) {
-		
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		draw(g);
 	}
 	
 	public void draw(Graphics g) {
+		for (int i = 0; i < (SCREEN_HEIGHT / UNIT_SIZE) ; i++) {
+			g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
+			g.drawLine(0, i * UNIT_SIZE, SCREEN_WIDTH, i * UNIT_SIZE);
+		}
 		
+		// Draw an Apple
+		g.setColor(Color.red);
+		g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
+		
+		// Draw an Snake
+		// Iterate body parts of Snake
+		for (int i = 0; i < bodyParts; i++) {
+			if (i == 0) {
+				g.setColor(Color.green);
+				g.fillRect(X[i], Y[i], UNIT_SIZE, UNIT_SIZE);
+			} else {
+				g.setColor(new Color(45, 180, 0)); // RGB Color
+				g.fillRect(X[i], Y[i], UNIT_SIZE, UNIT_SIZE);
+			}
+		}
 	}
 	
 	public void newApple() {
-		
+		appleX = random.nextInt((int)(SCREEN_WIDTH / UNIT_SIZE)) * UNIT_SIZE;
+		appleY = random.nextInt((int)(SCREEN_HEIGHT / UNIT_SIZE)) * UNIT_SIZE;
 	}
 
 	public void move() {
+		for (int i = bodyParts; i > 0; i--) {
+			X[i] = X[i - 1];
+			Y[i] = Y[i - 1];
+		}
 		
+		switch (direction) {
+		
+		case 'U':
+			Y[0] = Y[0] - UNIT_SIZE;
+			break;
+			
+		case 'D':
+			Y[0] = Y[0] + UNIT_SIZE;
+			break;
+			
+		case 'L':
+			X[0] = X[0] - UNIT_SIZE;
+			break;
+			
+		case 'R':
+			X[0] = X[0] + UNIT_SIZE;
+			break;
+		}
 	}
 	
 	public void checkApple() {
@@ -72,10 +118,16 @@ public class GamePanel extends JPanel implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if (running) {
+			move();
+			checkApple();
+			checkCollisions();
+		}
+		repaint();
 		
 	}
 	
-	// Create a Inner Class
+	// Inner Class
 	public class MyKeyAdapter extends KeyAdapter {
 		@Override
 		public void keyPressed(KeyEvent e) {
